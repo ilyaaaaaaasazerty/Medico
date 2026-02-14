@@ -1,0 +1,36 @@
+{
+  "name": "medico",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Unified medical platform for patients, doctors, clinics, and labs",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "db:generate": "npm run db:generate --workspace=@medico/backend",
+    "db:migrate": "npm run db:migrate --workspace=@medico/backend",
+    "db:push": "npm run db:push --workspace=@medico/backend",
+    "db:seed": "npm run db:seed --workspace=@medico/backend",
+    "db:studio": "npm run db:studio --workspace=@medico/backend"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "prettier": "^3.4.2",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "eslint": "^9.16.0",
+    "typescript": "^5.7.2"
+  },
+  "packageManager": "npm@10.9.0",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

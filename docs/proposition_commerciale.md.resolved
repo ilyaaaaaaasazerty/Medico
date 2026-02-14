@@ -1,0 +1,220 @@
+# PROPOSITION COMMERCIALE ET TECHNIQUE
+## Plateforme Médicale Unifiée — Medico
+**Date:** Décembre 2025
+
+---
+
+## TABLE DES MATIÈRES
+1. [Résumé Exécutif](#1-résumé-exécutif)
+2. [Vue d'ensemble du Projet](#2-vue-densemble-du-projet)
+3. [Architecture Technique](#3-architecture-technique)
+4. [Composants du Projet](#4-composants-du-projet)
+    - [4.1 Backend API](#41-backend-api)
+    - [4.2 Frontend Web (Dashboard & Admin)](#42-frontend-web)
+    - [4.3 Back-Office Super-Admin](#43-back-office-super-admin)
+    - [4.4 Application Mobile (Patient & Docteur)](#44-application-mobile)
+5. [Planning Global](#5-planning-global)
+6. [Budget Détaillé](#6-budget-détaillé)
+7. [Livrables](#7-livrables)
+8. [Plan de Paiement](#8-plan-de-paiement)
+9. [Garanties et Support](#9-garanties-et-support)
+10. [Conditions Contractuelles](#10-conditions-contractuelles)
+
+---
+
+## 1. RÉSUMÉ EXÉCUTIF
+
+### 1.1 Présentation
+**Medico** est une solution médicale complète et moderne visant à digitaliser l'ensemble du parcours de soin en Algérie. La plateforme comprend :
+- Une **application mobile hybride** (iOS & Android) pour les patients et les médecins.
+- Un **dashboard web responsive** pour la gestion des cliniques et des laboratoires.
+- Un **back-office d’administration** centrale pour le monitoring global.
+- Une **API backend** sécurisée gérant les dossiers médicaux et les transactions.
+
+### 1.2 Chiffres Clés
+| Métrique | Valeur |
+| :--- | :--- |
+| **Durée totale** | 32 semaines (8 mois) |
+| **Heures estimées** | 2,880 heures (Équipe senior) |
+| **Budget total** | **28,500,000 DZD** |
+| **Plateformes** | Web, iOS, Android |
+| **Langues** | Arabe (RTL), Français, Anglais |
+
+### 1.3 Technologies Principales
+- **Backend:** Node.js + Express + Prisma ORM
+- **Frontend Web:** Next.js 14/15 + Tailwind CSS
+- **Mobile:** React Native (Expo) + Zustand
+- **Base de données:** PostgreSQL
+- **Paiements:** CIB, Baridimob (Chargily), Cash/Wallet
+
+---
+
+## 2. VUE D'ENSEMBLE DU PROJET
+
+### 2.1 Objectifs
+#### Objectifs Business
+- **Digitaliser l'accès aux soins** via une prise de rendez-vous fluide.
+- **Centraliser les dossiers médicaux** pour un meilleur suivi patient.
+- **Monétiser les services** via un système de crédits prépayés.
+- **Optimiser la gestion des cliniques** (files d'attente, ressources, staff).
+
+#### Objectifs Techniques
+- **Architecture scalable** (Micro-monorepo Turborepo).
+- **Sécurité maximale** (Chiffrement des données de santé, JWT).
+- **Performance critique** (Temps de réponse < 200ms).
+- **Support Multilingue** (Arabe RTL natif).
+
+### 2.2 Périmètre Fonctionnel
+#### Pour les Patients
+- Recherche multicritère (docteurs, spécialités, géolocalisation).
+- Prise de rendez-vous en temps réel (slots dynamiques).
+- Téléchargement et partage de documents médicaux sécurisés.
+- Portefeuille de crédits (Recharge par CIB/Baridimob).
+- Téléconsultation vidéo intégrée.
+
+#### Pour les Docteurs & Cliniques
+- Dashboard de gestion des consultations quotidiennes.
+- Éditeur de prescriptions numériques (génération PDF).
+- Gestion de file d'attente et assignation des salles.
+- Monitoring des revenus et demandes de reversement (Payouts).
+
+---
+
+## 3. ARCHITECTURE TECHNIQUE
+
+### 3.1 Architecture Globale
+```mermaid
+graph TD
+    subgraph "Interfaces Utilisateurs"
+        A[App Mobile - Patient/Docteur]
+        B[Dashboard Web - Clinique/Lab]
+        C[Admin Panel - Système]
+    end
+
+    subgraph "Core API Layer"
+        D[Node.js / Express API]
+        E[Prisma ORM]
+        F[Auth Service - JWT]
+    end
+
+    subgraph "Persistence & Services"
+        G[(PostgreSQL DB)]
+        H[Object Storage - S3]
+        I[Notification Engine - FCM/SMS]
+        J[Payment Gateway - Chargily]
+    end
+
+    A & B & C <--> D
+    D <--> E <--> G
+    D <--> F & H & I & J
+```
+
+---
+
+## 4. COMPOSANTS DU PROJET
+
+### 4.1 BACKEND API
+#### 4.1.1 Description
+Le backend centralise toute la logique métier, la sécurité et l'orchestration des données médicales sensibles via une API REST documentée.
+
+#### 4.1.2 Fonctionnalités Détaillées
+- **Gestion Auth & Sécurité:** Roles (PATIENT, DOCTOR, CLINIC_ADMIN, etc.), validation JWT.
+- **Moteur de Disponibilité:** Calcul en temps réel des créneaux libres selon les règles des médecins.
+- **Système de Crédits:** Gestion des transactions, remises (Codes Promo) et balance patient.
+- **Dossier Médical Digital:** Stockage structuré des antécédents, allergies et prescriptions.
+- **Intégration Paiements:** Liaison directe avec les passerelles locales (Algérie).
+
+#### 4.1.3 Calendrier Backend
+- **Durée:** 20 semaines
+- **Phase 1: Setup & Data Model** (Sem 1-4)
+- **Phase 2: Auth & Core Logic** (Sem 5-10)
+- **Phase 3: Scheduling & Payments** (Sem 11-16)
+- **Phase 4: Docs & PDF Service** (Sem 17-20)
+
+#### 4.1.4 Budget Backend
+| Catégorie | Montant (DZD) |
+| :--- | :--- |
+| Développement | 9,500,000 |
+| Contingence (8%) | 760,000 |
+| **TOTAL** | **10,260,000** |
+
+---
+
+### 4.2 FRONTEND WEB (DASHBOARD & ADMIN)
+#### 4.2.1 Description
+Portail haut de gamme pour les cliniques et administrateurs, utilisant Next.js pour un SEO performant et une expérience ultra-rapide.
+
+#### 4.2.2 Fonctionnalités Détaillées
+- **Dashboard Clinique:** Monitoring des arrivées, gestion du staff et des salles.
+- **Queue Management:** Système de file d'attente en temps réel.
+- **Reporting Financier:** Tableaux de bord des revenus et statistiques de performance.
+- **Admin System:** Portail de vérification des licences médicales et modération.
+
+#### 4.2.3 Budget Frontend Web
+| Catégorie | Montant (DZD) |
+| :--- | :--- |
+| Développement | 7,000,000 |
+| Contingence (8%) | 560,000 |
+| **TOTAL** | **7,560,000** |
+
+---
+
+### 4.4 APPLICATION MOBILE (PATIENT & DOCTEUR)
+#### 4.4.1 Description
+Application native unique (multi-role) développée en React Native pour une performance fluide sur iOS et Android.
+
+#### 4.2.4 Budget Mobile
+| Catégorie | Montant (DZD) |
+| :--- | :--- |
+| Développement | 8,500,000 |
+| Contingence (8%) | 680,000 |
+| **TOTAL** | **9,180,000** |
+
+---
+
+## 5. PLANNING GLOBAL
+- **Phase 1: Conception & UI/UX** (Sem 1-4)
+- **Phase 2: Fondations Backend & Auth** (Sem 5-12)
+- **Phase 3: Développement Apps (Web & Mobile)** (Sem 13-24)
+- **Phase 4: Intégration Paiements & Tests** (Sem 25-28)
+- **Phase 5: Déploiement & Formation** (Sem 29-32)
+
+---
+
+## 6. BUDGET DÉTAILLÉ (RÉCAPITULATIF)
+| Composant | Heures | Budget (DZD) |
+| :--- | :--- | :--- |
+| **Backend API** | 1,100 | 10,260,000 |
+| **Frontend Web** | 800 | 7,560,000 |
+| **Application Mobile** | 980 | 9,180,000 |
+| **UI/UX & Design** | 300 | 1,500,000 |
+| **TOTAL PROJET** | **3,180** | **28,500,000 DZD** |
+
+---
+
+## 8. PLAN DE PAIEMENT
+| Jalon | Événement | Montant (DZD) |
+| :--- | :--- | :--- |
+| **Acompte** | Signature du contrat | 4,275,000 (15%) |
+| **Jalon 1** | Validation Designs & API Specs | 4,275,000 (15%) |
+| **Jalon 2** | Backend & Auth (Bêta) | 5,700,000 (20%) |
+| **Jalon 3** | Apps Web & Mobile (MVP) | 5,700,000 (20%) |
+| **Jalon 4** | Livraison Finale & Déploiement | 5,700,000 (20%) |
+| **Jalon 5** | Support Post-Lancement (1 mois) | 2,850,000 (10%) |
+
+---
+
+## 9. GARANTIES ET SUPPORT
+- **Garantie Corrective:** 6 mois après livraison (bugs bloquants).
+- **Temps de Réponse Support:** < 4 heures pour les incidents critiques.
+- **Hébergement:** Support technique au déploiement inclus.
+
+---
+
+## 10. CONDITIONS CONTRACTUELLES
+- Prise d'effet à réception de l'acompte.
+- Propriété intellectuelle transférée au client après paiement final.
+- Confidentialité stricte (NDA médical).
+
+---
+**FIN DU DOCUMENT**

@@ -1,0 +1,27 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "back": "Retour"
+  },
+  "transport": {
+    "title": "Transport Médical",
+    "request": "Demander une ambulance",
+    "online": "En ligne",
+    "offline": "Hors ligne",
+    "findingDriver": "Recherche de chauffeur...",
+    "driverFound": "Chauffeur trouvé !",
+    "pickup": "Lieu de prise en charge",
+    "destination": "Destination",
+    "confirm": "Confirmer la demande"
+  },
+  "lab": {
+    "title": "Analyses Laboratoire",
+    "orderTest": "Commander un test",
+    "scanCode": "Scanner QR Patient",
+    "pending": "Commandes en attente",
+    "results": "Résultats",
+    "upload": "Télécharger le résultat"
+  }
+}

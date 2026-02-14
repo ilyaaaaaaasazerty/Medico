@@ -1,0 +1,71 @@
+# Medico Infrastructure Roadmap
+
+This roadmap transforms the current prototype into a scale-ready platform aligned with the **Medico Infrastructure Manifesto**.
+
+## Phase 1: The Iron Foundation (Current Focus)
+**Goal:** Stop the bleeding. Enable async work and caching.
+- [ ] **Redis Setup**: Install `ioredis`. Configure connection with graceful degradation/retries.
+- [ ] **Background Job Engine**: Install `bullmq`. Create `emailQueue`, `notificationQueue`, `fileProcessingQueue`.
+- [ ] **Structured Logging**: Replace `console.log` with `winston` or `pino`. Ensure strict JSON format with correlation IDs.
+- [ ] **Environment Configuration**: Enforce strict validation of all ENV variables (no undefined secrets).
+
+## Phase 2: Database Discipline (PostgreSQL)
+**Goal:** Prevent data loss and ensure query performance.
+- [x] **Soft Delete Strategy**: Implement Prisma middleware to intercept `delete` and convert to `update deletedAt = now()`.
+- [x] **Index Audit**: Review all Foreign Keys in `schema.prisma`. Add missing indexes (`@@index`).
+- [ ] **Composite Indexing**: Analyze `Patient`, `Appointment`, `Doctor` access patterns and add multi-column indexes.
+- [x] **Transaction Safety**: Audit `wallet` logic. Ensure usage of `SELECT ... FOR UPDATE` (via Prisma raw query or interactive transaction locks).
+- [ ] **ReadOnly Replicas**: Configure backend to use Read Replicas for heavy listing queries (future-prep).
+
+## Phase 3: API Scalability & Security
+**Goal:** Protect the core from abuse and overhead.
+- [x] **API Versioning**: Move all routes to `/api/v1`.
+- [x] **Rate Limiting**: Implement Redis-based sliding window rate limiter per IP/User.
+- [ ] **Input Sanitization**: Audit all Zod schemas for strict bounds (max length, regex).
+- [ ] **Timeout Middleware**: Enforce hard 30s timeout on all API requests.
+
+## Phase 4: Storage & Media
+**Goal:** Stateless servers.
+- [x] **S3 Integration**: Replace local `multer` storage with AWS S3 (or MinIO for dev).
+- [ ] **Pre-signed URLs**: Implement logic for secure file uploads/downloads directly from client.
+- [ ] **CDN Setup**: logic to serve public assets via CloudFront/Cloudflare URL.
+
+## Phase 5: Observability
+**Goal:** Visibility into the system.
+- [x] **Metrics Collection**: Implement Prometheus client. Track API latency, DB query duration, Redis hits/miss.
+- [x] **Health Checks**: Create robust `/health` and `/ready` endpoints verifying DB/Redis connectivity.
+
+## Phase 6: Disaster Recovery
+**Goal:** Survive failure.
+- [x] **Automated Backups**: Verify cron jobs for DB dumping.
+- [x] **Circuit Breakers**: Implement breakers for external services (SMS, Email).
+
+---
+
+# Capacity Assessment: 30 Million DAU
+
+**Can this specific setup handle 30 Million Daily Active Users?**
+
+**Verdict: NOT YET. But it is the right path.**
+
+### The Reality of 30M DAU
+*   **Request Volume**: ~300 Million requests/day (assuming low engagement) to ~1 Billion+ (high engagement).
+*   **Peak Load**: ~20,000 to ~50,000 requests per second.
+*   **Database Load**: This is the bottleneck.
+
+### Critical Bottlenecks in "One Primary Postgres" Rule
+1.  **Write Throughput**: A single master interface, even on massive hardware, struggles beyond 20k-30k writes/second while maintaining ACID compliance for financial transactions.
+2.  **Connection Limits**: Postgres max connections are finite. You need aggressive connection pooling (PgBouncer).
+
+### How we bridge the gap:
+To hit 30M DAU with this architecture, we strictly adhere to the rules but push them to the limit:
+1.  **Aggressive Read Replicas**: 99% of traffic is reads. We offload ALL `findMany`, `findUnique` (non-critical) to a fleet of 10-20 read replicas.
+2.  **Redis Caching**: We must cache 90%+ of user profiles, configs, and static data. The DB should only see writes and cache misses.
+3.  **Future Evolution**: When the "One Primary" breaks (around 5-10M DAU), we don't rewrite. We introduce **Citus** (Distributed Postgres) or **Vertical Sharding** (separate DB for `Billing` vs `Medical`), essentially keeping the "Monolith" code but splitting the data store.
+
+**Conclusion:** This infrastructure is perfect for **0 to 5 Million DAU**. For **30 Million**, the "One DB" rule will eventually need to evolve into a partitioned strategy, but starting with Sharding now would kill the project's velocity.
+
+## 🛡️ Final Scale Hardening (Implemented)
+- [x] **CDN Support**: Integrated `CDN_URL` in `storage.ts` for edge delivery.
+- [x] **Input Hardening**: Strict Zod string/payload limits in `patient.routes.ts`.
+- [x] **Read Replica Support**: Secondary `prismaRead` client ready in `lib/prisma.ts`.

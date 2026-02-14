@@ -1,0 +1,27 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back"
+  },
+  "transport": {
+    "title": "Medical Transport",
+    "request": "Request Ambulance",
+    "online": "Online",
+    "offline": "Offline",
+    "findingDriver": "Finding nearby driver...",
+    "driverFound": "Driver Found!",
+    "pickup": "Pickup Location",
+    "destination": "Destination",
+    "confirm": "Confirm Request"
+  },
+  "lab": {
+    "title": "Lab Tests",
+    "orderTest": "Order Lab Test",
+    "scanCode": "Scan Patient QR",
+    "pending": "Pending Orders",
+    "results": "Results",
+    "upload": "Upload Result"
+  }
+}

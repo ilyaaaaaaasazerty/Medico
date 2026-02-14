@@ -1,0 +1,27 @@
+{
+  "common": {
+    "loading": "جار التحميل...",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "back": "عودة"
+  },
+  "transport": {
+    "title": "النقل الطبي",
+    "request": "طلب سيارة إسعاف",
+    "online": "متصل",
+    "offline": "غير متصل",
+    "findingDriver": "جار البحث عن سائق...",
+    "driverFound": "تم العثور على سائق!",
+    "pickup": "موقع الاستلام",
+    "destination": "الوجهة",
+    "confirm": "تأكيد الطلب"
+  },
+  "lab": {
+    "title": "تحاليل مخبرية",
+    "orderTest": "طلب تحليل",
+    "scanCode": "مسح رمز المريض",
+    "pending": "طلبات معلقة",
+    "results": "النتائج",
+    "upload": "رفع النتيجة"
+  }
+}
