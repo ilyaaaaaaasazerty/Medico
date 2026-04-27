@@ -52,7 +52,7 @@ export async function getNearbyProviders(lat: number, lng: number, type: Transpo
         include: {
             vehicles: true,
             user: {
-                select: { firstName: true, lastName: true, phone: true }
+                select: { email: true, phone: true }
             }
         }
     });
@@ -154,7 +154,7 @@ export async function getPatientActiveRequest(patientId: string) {
         include: {
             provider: {
                 include: {
-                    user: { select: { firstName: true, lastName: true, phone: true } },
+                    user: { select: { email: true, phone: true } },
                     vehicles: true
                 }
             }

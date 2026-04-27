@@ -1,18 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Users, Search, Filter, MoreVertical, ShieldAlert, ShieldCheck } from 'lucide-react';
-
-interface Patient {
-    id: string;
-    firstName: string;
-    lastName: string;
-    user: {
-        id: string;
-        email: string;
-        status: 'ACTIVE' | 'SUSPENDED';
-        lastLogin?: string;
-    }
-}
+import { adminService, Patient } from '@/services/admin.service';
+import { Loader2, Search, Filter, ShieldAlert, ShieldCheck } from 'lucide-react';
 
 export default function PatientsPage() {
     const [patients, setPatients] = useState<Patient[]>([]);
@@ -22,12 +11,8 @@ export default function PatientsPage() {
     const fetchPatients = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('admin_token');
-            const res = await fetch(`http://192.168.1.7:3001/api/v1/admin/patients?search=${search}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const json = await res.json();
-            if (json.success) setPatients(json.data);
+            const data = await adminService.getPatients(search);
+            setPatients(data ?? []);
         } catch (err) {
             console.error('Failed to fetch patients', err);
         } finally {
@@ -35,25 +20,20 @@ export default function PatientsPage() {
         }
     };
 
-    const toggleStatus = async (id: string, current: string) => {
+    const toggleStatus = async (userId: string, current: string) => {
         const newStatus = current === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
         try {
-            const token = localStorage.getItem('admin_token');
-            const res = await fetch(`http://192.168.1.7:3001/api/v1/admin/users/${id}/status`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ status: newStatus })
-            });
-            if (res.ok) fetchPatients();
+            await adminService.setUserStatus(userId, newStatus as 'ACTIVE' | 'SUSPENDED');
+            fetchPatients();
         } catch (err) {
             console.error('Failed to update status', err);
         }
     };
 
-    useEffect(() => { fetchPatients(); }, [search]);
+    useEffect(() => {
+        const t = setTimeout(() => fetchPatients(), 300);
+        return () => clearTimeout(t);
+    }, [search]);
 
     return (
         <div className="space-y-8">
@@ -77,8 +57,7 @@ export default function PatientsPage() {
                         />
                     </div>
                     <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium hover:bg-white dark:hover:bg-slate-800 transition-colors">
-                        <Filter size={16} />
-                        Filter
+                        <Filter size={16} /> Filter
                     </button>
                 </div>
 
@@ -94,7 +73,9 @@ export default function PatientsPage() {
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {loading ? (
-                                <tr><td colSpan={4} className="px-6 py-12 text-center text-slate-500">Loading patients...</td></tr>
+                                <tr><td colSpan={4} className="px-6 py-12 text-center text-slate-500">
+                                    <Loader2 className="animate-spin mx-auto mb-2" /> Loading patients...
+                                </td></tr>
                             ) : patients.length === 0 ? (
                                 <tr><td colSpan={4} className="px-6 py-12 text-center text-slate-500">No patients found.</td></tr>
                             ) : patients.map(patient => (
@@ -113,21 +94,19 @@ export default function PatientsPage() {
                                     <td className="px-6 py-4">
                                         <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${patient.user.status === 'ACTIVE'
                                             ? 'bg-green-50 text-green-600 dark:bg-green-900/20'
-                                            : 'bg-red-50 text-red-600 dark:bg-red-900/20'
-                                            }`}>
+                                            : 'bg-red-50 text-red-600 dark:bg-red-900/20'}`}>
                                             {patient.user.status}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-slate-500">
-                                        {patient.user.lastLogin ? new Date(patient.user.lastLogin).toLocaleDateString() : 'Never'}
+                                        {patient.user.lastLoginAt ? new Date(patient.user.lastLoginAt).toLocaleDateString() : 'Never'}
                                     </td>
                                     <td className="px-6 py-4">
                                         <button
                                             onClick={() => toggleStatus(patient.user.id, patient.user.status)}
                                             className={`p-2 rounded-lg transition-colors ${patient.user.status === 'ACTIVE'
                                                 ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10'
-                                                : 'text-green-500 hover:bg-green-50 dark:hover:bg-green-900/10'
-                                                }`}
+                                                : 'text-green-500 hover:bg-green-50 dark:hover:bg-green-900/10'}`}
                                             title={patient.user.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
                                         >
                                             {patient.user.status === 'ACTIVE' ? <ShieldAlert size={18} /> : <ShieldCheck size={18} />}

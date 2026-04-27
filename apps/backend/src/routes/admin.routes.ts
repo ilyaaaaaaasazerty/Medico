@@ -82,13 +82,9 @@ router.put('/users/:id/status', asyncHandler(async (req: Request, res: Response)
 }));
 
 // Transport Providers
-router.get('/transport-providers', asyncHandler(async (req, res, next) => {
-    try {
-        const providers = await adminService.listTransportProviders();
-        res.json({ success: true, data: providers });
-    } catch (error) {
-        next(error);
-    }
+router.get('/transport-providers', asyncHandler(async (_req: Request, res: Response) => {
+    const providers = await adminService.listTransportProviders();
+    res.json({ success: true, data: providers });
 }));
 
 router.get('/feature-flags', asyncHandler(async (_req: Request, res: Response) => {

@@ -112,7 +112,7 @@ router.post(
             });
 
             // Import prisma here to create the TransportProvider profile
-            const { prisma } = await import('@/lib/prisma');
+            const { prisma } = await import('../lib/prisma.js');
 
             // Create the TransportProvider profile with a default vehicle
             await prisma.transportProvider.create({
@@ -220,7 +220,10 @@ router.post(
     validate(loginSchema),
     asyncHandler(async (req, res) => {
         try {
-            const result = await login(req.body);
+            const result = await login(req.body, {
+                userAgent: req.get('user-agent'),
+                ipAddress: req.ip,
+            });
             res.json({
                 success: true,
                 data: result,

@@ -163,7 +163,10 @@ export async function resendOtp(userId: string, type: 'PHONE' | 'EMAIL') {
 /**
  * Login user
  */
-export async function login(input: LoginInput): Promise<AuthResult> {
+export async function login(
+    input: LoginInput,
+    meta?: { userAgent?: string; ipAddress?: string }
+): Promise<AuthResult> {
     const { identifier, password } = input;
 
     // Find user by email or phone
@@ -234,8 +237,8 @@ export async function login(input: LoginInput): Promise<AuthResult> {
             userId: user.id,
             refreshToken,
             expiresAt,
-            userAgent: 'Mobile App', // TODO: Get from request
-            ipAddress: '0.0.0.0', // TODO: Get from request
+            userAgent: meta?.userAgent ?? 'Unknown',
+            ipAddress: meta?.ipAddress ?? '0.0.0.0',
         },
     });
 

@@ -41,7 +41,10 @@ export default function MessagesInboxScreen() {
     const renderThread = ({ item }: { item: MessageThread }) => {
         const otherParticipant = item.participants.find(p => p.userId !== user?.id)?.user;
         const lastMessage = item.messages?.[0];
-        const isUnread = false; // Mocking unread state for design density
+        const myParticipant = item.participants.find(p => p.userId === user?.id);
+        const lastRead = myParticipant?.lastRead ? new Date(myParticipant.lastRead) : null;
+        const lastMessageAt = lastMessage?.createdAt ? new Date(lastMessage.createdAt) : null;
+        const isUnread = !!(lastMessageAt && (!lastRead || lastMessageAt > lastRead) && lastMessage?.senderId !== user?.id);
 
         return (
             <AppCard

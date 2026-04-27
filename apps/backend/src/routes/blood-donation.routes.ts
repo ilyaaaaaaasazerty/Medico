@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import * as bloodDonationService from '../services/blood-donation.service.js';
 import { authenticate } from '../middleware/auth.js';
@@ -31,9 +31,9 @@ router.post('/requests', async (req: AuthRequest, res: Response, next) => {
             ...req.body,
             patientId,
         });
-        res.status(201).json(result);
+        return res.status(201).json(result);
     } catch (error) {
-        next(error);
+        return next(error);
     }
 });
 
@@ -47,20 +47,19 @@ router.get('/recommended', async (req: AuthRequest, res: Response, next) => {
 
         const results = await bloodDonationService.getRecommendedRequestsForDonor(donorId);
 
-        // Ensure we only send necessary privacy-safe info
-        const sanitizedResults = results.map(req => ({
-            id: req.id,
-            bloodType: req.bloodType,
-            urgency: req.urgency,
-            location: req.location,
-            unitsRequired: req.unitsRequired,
-            createdAt: req.createdAt,
-            patientName: req.patient?.firstName || 'Unknown', // Only first name for privacy initially
+        const sanitizedResults = results.map(r => ({
+            id: r.id,
+            bloodType: r.bloodType,
+            urgency: r.urgency,
+            location: r.location,
+            unitsRequired: r.unitsRequired,
+            createdAt: r.createdAt,
+            patientName: r.patient?.firstName || 'Unknown',
         }));
 
-        res.json(sanitizedResults);
+        return res.json(sanitizedResults);
     } catch (error) {
-        next(error);
+        return next(error);
     }
 });
 
@@ -75,7 +74,7 @@ router.post('/requests/:id/respond', async (req: AuthRequest, res: Response, nex
         const result = await bloodDonationService.respondToRequest(req.params.id, donorId, req.body.notes);
         return res.json(result);
     } catch (error) {
-        next(error);
+        return next(error);
     }
 });
 
