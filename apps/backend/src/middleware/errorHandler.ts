@@ -7,7 +7,7 @@ export interface AppError extends Error {
 
 export const errorHandler = (
     err: any,
-    req: Request,
+    _req: Request,
     res: Response,
     _next: NextFunction
 ) => {
@@ -34,7 +34,7 @@ export const errorHandler = (
         console.error('[AWS Metadata]:', (err as any).$metadata);
     }
 
-    res.status(statusCode).json({
+    return res.status(statusCode).json({
         success: false,
         error: {
             message,

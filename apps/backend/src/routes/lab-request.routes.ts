@@ -90,7 +90,7 @@ router.put('/:id/collect', authenticate, authorize('LAB_ADMIN'), asyncHandler(as
         return res.status(400).json({ success: false, error: 'Technician ID is required' });
     }
     const request = await labRequestService.collectSample(req.params.id, technicianId);
-    res.json({ success: true, data: request });
+    return res.json({ success: true, data: request });
 }));
 
 /**
@@ -171,7 +171,7 @@ router.get('/:id/report', authenticate, asyncHandler(async (req: AuthRequest, re
     res.setHeader('Content-Disposition', `attachment; filename=lab-report-${req.params.id}.pdf`);
 
     const template = await templateService.getLabTemplate(request.labCenterId);
-    await PDFService.generateLabReportPDF(request, res, template as any);
+    return PDFService.generateLabReportPDF(request, res, template as any);
 }));
 
 /**

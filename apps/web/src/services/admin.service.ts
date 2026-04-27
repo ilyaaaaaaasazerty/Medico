@@ -11,8 +11,33 @@ export interface VerificationRequest {
     type: 'DOCTOR' | 'CLINIC' | 'LAB';
     targetId: string;
     status: 'PENDING' | 'APPROVED' | 'REJECTED';
-    documents: string[]; // URLs
+    documents: string[];
     createdAt: string;
+}
+
+export interface Patient {
+    id: string;
+    firstName: string;
+    lastName: string;
+    user: { id: string; email: string; status: 'ACTIVE' | 'SUSPENDED'; lastLoginAt?: string };
+}
+
+export interface SupportTicket {
+    id: string;
+    subject: string;
+    content: string;
+    status: string;
+    priority: string;
+    createdAt: string;
+    patient: { firstName: string; lastName: string; avatarUrl?: string };
+    replies?: { id: string; content: string; isStaff: boolean; createdAt: string }[];
+}
+
+export interface FeatureFlag {
+    id: string;
+    key: string;
+    enabled: boolean;
+    description?: string;
 }
 
 export const adminService = {
@@ -31,6 +56,11 @@ export const adminService = {
         return res.data.data;
     },
 
+    verifyProvider: async (id: string, status: 'APPROVED' | 'REJECTED', notes?: string) => {
+        const res = await api.put(`/admin/verifications/${id}`, { status, notes });
+        return res.data.data;
+    },
+
     getDoctors: async (search?: string) => {
         const res = await api.get<{ data: any[] }>(`/admin/doctors?search=${search || ''}`);
         return res.data.data;
@@ -46,11 +76,6 @@ export const adminService = {
         return res.data.data;
     },
 
-    verifyProvider: async (id: string, status: 'APPROVED' | 'REJECTED', notes?: string) => {
-        const res = await api.put(`/admin/verifications/${id}`, { status, notes });
-        return res.data.data;
-    },
-
     getPayouts: async () => {
         const res = await api.get('/admin/payouts');
         return res.data.data;
@@ -59,5 +84,43 @@ export const adminService = {
     createProvider: async (data: any) => {
         const res = await api.post('/admin/providers', data);
         return res.data.data;
-    }
+    },
+
+    // Patients
+    getPatients: async (search?: string) => {
+        const res = await api.get<{ success: boolean; data: Patient[] }>(`/admin/patients?search=${search || ''}`);
+        return res.data.data;
+    },
+
+    setUserStatus: async (userId: string, status: 'ACTIVE' | 'SUSPENDED') => {
+        const res = await api.put(`/admin/users/${userId}/status`, { status });
+        return res.data;
+    },
+
+    // Support tickets
+    getTickets: async () => {
+        const res = await api.get<{ success: boolean; data: SupportTicket[] }>('/admin/tickets');
+        return res.data.data;
+    },
+
+    getTicket: async (id: string) => {
+        const res = await api.get<{ success: boolean; data: SupportTicket }>(`/admin/tickets/${id}`);
+        return res.data.data;
+    },
+
+    replyToTicket: async (id: string, content: string) => {
+        const res = await api.post(`/admin/tickets/${id}/replies`, { content });
+        return res.data;
+    },
+
+    // Feature flags
+    getFeatureFlags: async () => {
+        const res = await api.get<{ success: boolean; data: FeatureFlag[] }>('/admin/feature-flags');
+        return res.data.data;
+    },
+
+    toggleFeatureFlag: async (key: string, enabled: boolean) => {
+        const res = await api.put(`/admin/feature-flags/${key}`, { enabled });
+        return res.data;
+    },
 };

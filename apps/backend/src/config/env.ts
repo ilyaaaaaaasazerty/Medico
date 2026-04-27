@@ -29,19 +29,28 @@ const envSchema = z.object({
     // Frontend URLs
     FRONTEND_URL: z.string().default('http://localhost:3000'),
     MOBILE_URL: z.string().default('exp://localhost:8081'),
-    BACKEND_URL: z.string().default('http://192.168.1.5:3001'),
+    BACKEND_URL: z.string().default('http://localhost:3001'),
 
-    // Email (optional)
+    // Email — SMTP
     SMTP_HOST: z.string().optional(),
-    SMTP_PORT: z.string().optional(),
+    SMTP_PORT: z.coerce.number().optional(),
     SMTP_USER: z.string().optional(),
     SMTP_PASS: z.string().optional(),
     EMAIL_FROM: z.string().optional(),
 
-    // SMS (optional)
-    SMS_PROVIDER: z.string().optional(),
-    SMS_API_KEY: z.string().optional(),
-    SMS_FROM: z.string().optional(),
+    // SMS — Twilio
+    TWILIO_ACCOUNT_SID: z.string().optional(),
+    TWILIO_AUTH_TOKEN: z.string().optional(),
+    TWILIO_PHONE_NUMBER: z.string().optional(),
+
+    // Redis (BullMQ / rate limiting)
+    REDIS_URL: z.string().default('redis://localhost:6379'),
+
+    // AWS S3 (optional)
+    AWS_ACCESS_KEY_ID: z.string().optional(),
+    AWS_SECRET_ACCESS_KEY: z.string().optional(),
+    AWS_REGION: z.string().optional(),
+    AWS_S3_BUCKET: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

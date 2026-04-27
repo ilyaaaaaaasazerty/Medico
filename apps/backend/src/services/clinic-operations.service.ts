@@ -206,6 +206,7 @@ export const clinicOperationsService = {
 
     async recordVitals(
         appointmentId: string,
+        _recordedBy: string,
         vitals: {
             bloodPressureSystolic?: number;
             bloodPressureDiastolic?: number;
@@ -214,31 +215,49 @@ export const clinicOperationsService = {
             weight?: number;
             height?: number;
             oxygenSaturation?: number;
-            notes?: string;
         }
     ) {
-        // Validate at least one vital is provided
-        const vitalValues = Object.values(vitals).filter((v) => v !== undefined && v !== null);
-        if (vitalValues.length === 0) {
+        const vitalEntries: { type: string; value: number; unit: string }[] = [
+            vitals.bloodPressureSystolic !== undefined && { type: 'BLOOD_PRESSURE_SYSTOLIC', value: vitals.bloodPressureSystolic, unit: 'mmHg' },
+            vitals.bloodPressureDiastolic !== undefined && { type: 'BLOOD_PRESSURE_DIASTOLIC', value: vitals.bloodPressureDiastolic, unit: 'mmHg' },
+            vitals.heartRate !== undefined && { type: 'HEART_RATE', value: vitals.heartRate, unit: 'bpm' },
+            vitals.temperature !== undefined && { type: 'TEMPERATURE', value: vitals.temperature, unit: '°C' },
+            vitals.weight !== undefined && { type: 'WEIGHT', value: vitals.weight, unit: 'kg' },
+            vitals.height !== undefined && { type: 'HEIGHT', value: vitals.height, unit: 'cm' },
+            vitals.oxygenSaturation !== undefined && { type: 'OXYGEN_SATURATION', value: vitals.oxygenSaturation, unit: '%' },
+        ].filter(Boolean) as { type: string; value: number; unit: string }[];
+
+        if (vitalEntries.length === 0) {
             throw new Error('NO_VITALS_PROVIDED');
         }
 
-        // Create vital recording
-        const recording = await prisma.vitalRecording.create({
-            data: {
-                appointmentId,
-                recordedAt: new Date(),
-                ...vitals,
-            },
+        const appointment = await prisma.appointment.findUnique({
+            where: { id: appointmentId },
+            select: { patientId: true }
         });
+        if (!appointment) throw new Error('APPOINTMENT_NOT_FOUND');
 
-        // Update waitlist status if exists
+        const recordings = await prisma.$transaction(
+            vitalEntries.map(entry =>
+                prisma.vitalRecording.create({
+                    data: {
+                        appointmentId,
+                        patientId: appointment.patientId,
+                        type: entry.type as any,
+                        value: entry.value,
+                        unit: entry.unit,
+                        recordedAt: new Date(),
+                    },
+                })
+            )
+        );
+
         await prisma.waitlistEntry.updateMany({
             where: { appointmentId },
             data: { status: WaitlistStatus.WITH_NURSE },
         });
 
-        return recording;
+        return recordings;
     },
 
     // Get vitals for an appointment

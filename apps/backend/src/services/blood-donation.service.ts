@@ -17,9 +17,10 @@ interface CreateBloodRequestInput {
     patientId: string;
     bloodType: BloodType;
     urgency: UrgencyLevel;
-    location: string;
+    location?: string;
     unitsRequired?: number;
     notes?: string;
+    reason?: string;
     latitude?: number;
     longitude?: number;
 }
@@ -30,7 +31,14 @@ interface CreateBloodRequestInput {
 export async function createBloodRequest(input: CreateBloodRequestInput) {
     const request = await prisma.bloodRequest.create({
         data: {
-            ...input,
+            patientId: input.patientId,
+            bloodType: input.bloodType,
+            urgency: input.urgency,
+            location: input.location,
+            unitsRequired: input.unitsRequired ?? 1,
+            reason: input.reason ?? input.notes,
+            latitude: input.latitude,
+            longitude: input.longitude,
             status: BloodRequestStatus.OPEN,
         },
         include: {

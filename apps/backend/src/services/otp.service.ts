@@ -1,99 +1,56 @@
 import { randomInt } from 'crypto';
 import { prisma } from '@/lib/prisma';
+import { emailService } from './email.service.js';
+import { smsService } from './sms.service.js';
 
 const OTP_EXPIRY_MINUTES = 10;
 
-/**
- * Generate a 6-digit OTP
- */
 export function generateOtpCode(): string {
     return randomInt(100000, 999999).toString();
 }
 
-/**
- * Store OTP in database
- */
 export async function storeOtp(userId: string, type: 'PHONE' | 'EMAIL'): Promise<string> {
     const code = generateOtpCode();
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
-    // Delete any existing OTP for this user and type
-    await prisma.oTP.deleteMany({
-        where: { userId, type },
-    });
-
-    // Create new OTP
-    await prisma.oTP.create({
-        data: {
-            userId,
-            code,
-            type,
-            expiresAt,
-        },
-    });
+    await prisma.oTP.deleteMany({ where: { userId, type } });
+    await prisma.oTP.create({ data: { userId, code, type, expiresAt } });
 
     return code;
 }
 
-/**
- * Verify OTP code
- */
 export async function verifyOtp(
     userId: string,
     code: string,
     type: 'PHONE' | 'EMAIL'
 ): Promise<{ valid: boolean; error?: string }> {
-    const otp = await prisma.oTP.findFirst({
-        where: { userId, type },
-    });
+    const otp = await prisma.oTP.findFirst({ where: { userId, type } });
 
-    if (!otp) {
-        return { valid: false, error: 'OTP_NOT_FOUND' };
-    }
-
+    if (!otp) return { valid: false, error: 'OTP_NOT_FOUND' };
     if (otp.expiresAt < new Date()) {
         await prisma.oTP.delete({ where: { id: otp.id } });
         return { valid: false, error: 'OTP_EXPIRED' };
     }
+    if (otp.code !== code) return { valid: false, error: 'OTP_INVALID' };
 
-    if (otp.code !== code) {
-        return { valid: false, error: 'OTP_INVALID' };
-    }
-
-    // Delete used OTP
     await prisma.oTP.delete({ where: { id: otp.id } });
-
     return { valid: true };
 }
 
-/**
- * Send OTP via SMS (placeholder - integrate with actual SMS provider)
- */
 export async function sendOtpSms(phone: string, code: string): Promise<void> {
-    // In development, just log the OTP
-    console.log(`📱 [DEV] OTP for ${phone}: ${code}`);
-
-    // TODO: Integrate with Twilio, Vonage, or local SMS provider
-    // Example:
-    // await twilioClient.messages.create({
-    //   body: `Your Medico verification code is: ${code}`,
-    //   to: phone,
-    //   from: env.TWILIO_PHONE_NUMBER,
-    // });
+    await smsService.sendSms(phone, `Your Medico verification code is: ${code}. Valid for ${OTP_EXPIRY_MINUTES} minutes.`);
 }
 
-/**
- * Send OTP via Email (placeholder - integrate with email provider)
- */
 export async function sendOtpEmail(email: string, code: string): Promise<void> {
-    // In development, just log the OTP
-    console.log(`📧 [DEV] OTP for ${email}: ${code}`);
-
-    // TODO: Integrate with SendGrid, AWS SES, or other email provider
-    // Example:
-    // await sendgrid.send({
-    //   to: email,
-    //   subject: 'Medico Verification Code',
-    //   text: `Your verification code is: ${code}`,
-    // });
+    const html = `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px">
+            <h2 style="color:#0A84FF;margin-bottom:8px">Medico Verification</h2>
+            <p style="color:#444;margin-bottom:24px">Use the code below to verify your account. It expires in ${OTP_EXPIRY_MINUTES} minutes.</p>
+            <div style="background:#f4f6f8;border-radius:12px;padding:24px;text-align:center">
+                <span style="font-size:36px;font-weight:800;letter-spacing:12px;color:#0A84FF">${code}</span>
+            </div>
+            <p style="color:#888;font-size:12px;margin-top:24px">If you didn't request this code, you can safely ignore this email.</p>
+        </div>
+    `;
+    await emailService.sendHtml(email, 'Your Medico Verification Code', html);
 }
